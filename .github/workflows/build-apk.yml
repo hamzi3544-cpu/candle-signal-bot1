@@ -3,14 +3,15 @@ name: Build APK
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Java
@@ -22,14 +23,41 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Upload APK
-  uses: actions/upload-artifact@v4
-  with:
-    name: candle-signal-bot-apk
-    path: "**/app/build/outputs/apk/debug/app-debug.apk"
+      - name: Find Android project
+        shell: bash
+        run: |
+          echo "Searching for Gradle project..."
+
+          PROJECT_DIR=$(find . -type f \( -name "settings.gradle" -o -name "settings.gradle.kts" \) -print -quit | xargs -r dirname)
+
+          if [ -z "$PROJECT_DIR" ]; then
+            echo "ERROR: settings.gradle was not found."
+            echo "Repository files:"
+            find . -maxdepth 5 -type f | sort
+            exit 1
+          fi
+
+          echo "Android project found at:"
+          echo "$PROJECT_DIR"
+
+          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
+
+      - name: Build Debug APK
+        shell: bash
+        run: |
+          echo "Building from: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          gradle assembleDebug
+
+      - name: Find APK
+        shell: bash
+        run: |
+          echo "Searching for APK..."
+          find "$PROJECT_DIR" -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: candle-signal-bot-apk
-          path: candle-signal-bot/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/build/outputs/apk/**/*.apk"
+          if-no-files-found: error
