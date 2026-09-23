@@ -2,9 +2,6 @@ name: Build APK
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 jobs:
   build:
@@ -23,105 +20,27 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
-      - name: Find real Android project
+      - name: Find Android project
         shell: bash
         run: |
-          echo "Searching for app/build.gradle..."
-
-          APP_FILE=$(find . -type f \( -path "*/app/build.gradle" -o -path "*/app/build.gradle.kts" \) -print -quit)
+          APP_FILE=$(find . -type f -name "build.gradle" | grep "/app/" | head -n 1)
 
           if [ -z "$APP_FILE" ]; then
-            echo "ERROR: app/build.gradle was not found."
-            echo "Repository structure:"
-            find . -maxdepth 8 -print | sort
+            echo "ERROR: app/build.gradle not found"
+            find . -maxdepth 8 -type f | sort
             exit 1
           fi
 
           PROJECT_DIR=$(dirname "$(dirname "$APP_FILE")")
 
-          echo "Found Android project:"
-          echo "$PROJECT_DIR"
-
+          echo "Android project: $PROJECT_DIR"
           echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-      - name: Create Gradle wrapper
-        shell: bash
-        run: |
-          cd "$PROJECT_DIR"
-          gradle wrapper --gradle-version 8.7
 
       - name: Build APK
         shell: bash
         run: |
-          cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Find APK
-        shell: bash
-        run: |
-          echo "APK files:"
-          find "$PROJECT_DIR" -type f -name "*.apk" -print
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: candle-signal-bot-apk
-          path: "**/build/outputs/apk/**/*.apk"
-          if-no-files-found: error            exit 1
-          fi
-
-          PROJECT_DIR=$(dirname "$(dirname "$APP_FILE")")
-
-          echo "Found Android project:"
-          echo "$PROJECT_DIR"
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-      - name: Create Gradle wrapper
-        shell: bash
-        run: |
-          cd "$PROJECT_DIR"
-          gradle wrapper --gradle-version 8.7
-
-      - name: Build APK
-        shell: bash
-        run: |
-          cd "$PROJECT_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
-
-      - name: Find APK
-        shell: bash
-        run: |
-          echo "APK files:"
-          find "$PROJECT_DIR" -type f -name "*.apk" -print
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: candle-signal-bot-apk
-          path: "**/build/outputs/apk/**/*.apk"
-          if-no-files-found: error            exit 1
-          fi
-
-          echo "Android project found at:"
-          echo "$PROJECT_DIR"
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> "$GITHUB_ENV"
-
-      - name: Build Debug APK
-        shell: bash
-        run: |
-          echo "Building from: $PROJECT_DIR"
           cd "$PROJECT_DIR"
           gradle assembleDebug
-
-      - name: Find APK
-        shell: bash
-        run: |
-          echo "Searching for APK..."
-          find "$PROJECT_DIR" -type f -name "*.apk" -print
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
