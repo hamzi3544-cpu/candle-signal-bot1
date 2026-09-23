@@ -23,11 +23,11 @@ jobs:
         uses: gradle/actions/setup-gradle@v4
 
       - name: Build APK
-        working-directory: candle-signal-bot
+        working-directory: candle-signal-bot1
         run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: candle-signal-bot-apk
-          path: candle-signal-bot/app/build/outputs/apk/debug/app-debug.apk
+          path: candle-signal-bot1/app/build/outputs/apk/debug/app-debug.apk
