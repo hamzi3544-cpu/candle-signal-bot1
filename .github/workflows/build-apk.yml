@@ -22,12 +22,16 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
+      - name: Show files
+        run: |
+          pwd
+          find . -maxdepth 3 -type f | sort
+
       - name: Build APK
-        working-directory: candle-signal-bot1
-        run: gradle assembleDebug
+        run: gradle -p ./candle-signal-bot1/candle-signal-bot1 assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: candle-signal-bot-apk
-          path: candle-signal-bot1/app/build/outputs/apk/debug/app-debug.apk
+          path: ./candle-signal-bot1/candle-signal-bot1/app/build/outputs/apk/debug/app-debug.apk
