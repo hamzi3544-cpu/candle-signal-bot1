@@ -19,9 +19,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-
+      - name: Build APK
+  run: gradle assembleDebug
       - name: Show files
         run: |
           pwd
